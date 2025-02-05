@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "911146578889",
+    "project_id": "accelerometer-9542e",
+    "storage_bucket": "accelerometer-9542e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:911146578889:android:839160f77972fdbb3eae18",
+        "android_client_info": {
+          "package_name": "com.example.accelerometertest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSpYH2MjyrsiRuI62ypbEfLXFCIlWh1Z0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
