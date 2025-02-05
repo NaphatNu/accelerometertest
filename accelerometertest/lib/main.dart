@@ -1,11 +1,16 @@
 import 'package:accelerometertest/sensor_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(); // เริ่มต้น Firebase
   runApp(MyApp());
+}
+
+Future<void> requestPermissions() async {
+  await Permission.manageExternalStorage.request();
 }
 
 class MyApp extends StatelessWidget {

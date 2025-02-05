@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:accelerometertest/history_page.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -18,7 +19,7 @@ class _AccelerometerGraphState extends State<AccelerometerGraph> {
   bool isRecording = false;
   Timer? timer;
   int elapsedSeconds = 0;
-  final int maxDuration = 10; // 6 นาที (360 วินาที)
+  final int maxDuration = 360; // 6 นาที (360 วินาที)
   double startTime = 0;
 
   void startRecording() {
@@ -42,10 +43,10 @@ class _AccelerometerGraphState extends State<AccelerometerGraph> {
       });
 
       sensorData.add({
-        'time': relativeTime,
-        'x': event.x,
-        'y': event.y,
-        'z': event.z,
+        'time': relativeTime.toStringAsFixed(2),
+        'x': event.x.toStringAsFixed(2),
+        'y': event.y.toStringAsFixed(2),
+        'z': event.z.toStringAsFixed(2),
       });
 
       if (xAxisPoints.length > 100) {
@@ -58,8 +59,9 @@ class _AccelerometerGraphState extends State<AccelerometerGraph> {
     timer = Timer.periodic(Duration(seconds: 1), (t) {
       setState(() {
         elapsedSeconds++;
-        if (elapsedSeconds >= maxDuration)
+        if (elapsedSeconds >= maxDuration) {
           stopRecording(); // หยุดหลังจากครบ 6 นาที
+        }
       });
     });
   }
@@ -86,7 +88,7 @@ class _AccelerometerGraphState extends State<AccelerometerGraph> {
   Future<void> saveToCsv() async {
     final directory = await getApplicationDocumentsDirectory();
     final path =
-        "${directory.path}/accelerometer_data_${DateTime.now().toIso8601String()}.csv";
+        "${directory.path}/a_data_${DateTime.now().toIso8601String()}.csv";
     final file = File(path);
 
     if (sensorData.isEmpty) {
@@ -102,6 +104,17 @@ class _AccelerometerGraphState extends State<AccelerometerGraph> {
     await file.writeAsString(csvData.join("\n"));
 
     print("✅ File saved at: $path");
+    resetRecording();
+  }
+
+  // ให้ไปที่หน้า history
+  void navigateToHistory() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HistoryPage(),
+      ),
+    );
   }
 
   @override
@@ -123,6 +136,10 @@ class _AccelerometerGraphState extends State<AccelerometerGraph> {
             ),
           ),
           Text("Elapsed Time: $elapsedSeconds s"),
+          ElevatedButton(
+            onPressed: navigateToHistory,
+            child: Text("View History"),
+          ),
         ],
       ),
     );
