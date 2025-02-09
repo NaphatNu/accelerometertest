@@ -19,7 +19,7 @@ class _AccelerometerGraphState extends State<AccelerometerGraph> {
   bool isRecording = false;
   Timer? timer;
   int elapsedSeconds = 0;
-  final int maxDuration = 360; // 6 นาที (360 วินาที)
+  final int maxDuration = 180; // 3 นาที (180 วินาที)
   double startTime = 0;
 
   void startRecording() {
