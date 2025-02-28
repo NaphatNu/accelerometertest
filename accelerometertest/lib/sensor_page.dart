@@ -21,18 +21,24 @@ class _AccelerometerGraphState extends State<AccelerometerGraph> {
   int elapsedSeconds = 0;
   final int maxDuration = 180; // 3 นาที (180 วินาที)
   double startTime = 0;
+  StreamSubscription? accelerometerSubscription;
 
   void startRecording() {
+    if (isRecording) return;
+
+    // ยกเลิก Timer ตัวเก่าก่อนเริ่มใหม่
+    timer?.cancel();
+
     setState(() {
       isRecording = true;
       startTime = DateTime.now().millisecondsSinceEpoch / 1000;
       elapsedSeconds = 0;
-      sensorData = [];
+      sensorData.clear();
     });
 
-    accelerometerEvents.listen((event) async {
-      if (!isRecording) return;
-
+    // ตั้งค่า Timer ให้ทำงานทุก 0.5 วินาที
+    timer = Timer.periodic(Duration(milliseconds: 200), (t) async {
+      final event = await accelerometerEvents.first;
       double currentTime = DateTime.now().millisecondsSinceEpoch / 1000;
       double relativeTime = currentTime - startTime;
 
@@ -40,36 +46,39 @@ class _AccelerometerGraphState extends State<AccelerometerGraph> {
         xAxisPoints.add(FlSpot(relativeTime, event.x));
         yAxisPoints.add(FlSpot(relativeTime, event.y));
         zAxisPoints.add(FlSpot(relativeTime, event.z));
+
+        // ลบค่าที่เก่ากว่า 20 วินาทีออก
+        while (xAxisPoints.isNotEmpty &&
+            (relativeTime - xAxisPoints.first.x) > 20) {
+          xAxisPoints.removeAt(0);
+          yAxisPoints.removeAt(0);
+          zAxisPoints.removeAt(0);
+        }
       });
 
       sensorData.add({
-        'time': relativeTime.toStringAsFixed(2),
+        'time': relativeTime.toStringAsFixed(4),
         'x': event.x.toStringAsFixed(2),
         'y': event.y.toStringAsFixed(2),
         'z': event.z.toStringAsFixed(2),
       });
 
-      if (xAxisPoints.length > 100) {
-        xAxisPoints.removeAt(0);
-        yAxisPoints.removeAt(0);
-        zAxisPoints.removeAt(0);
-      }
-    });
+      elapsedSeconds = (relativeTime).toInt(); // คำนวณเวลาที่ผ่านไปเป็นวินาที
 
-    timer = Timer.periodic(Duration(seconds: 1), (t) {
-      setState(() {
-        elapsedSeconds++;
-        if (elapsedSeconds >= maxDuration) {
-          stopRecording(); // หยุดหลังจากครบ 6 นาที
-        }
-      });
+      if (elapsedSeconds >= maxDuration) {
+        stopRecording();
+        saveToCsv();
+      }
     });
   }
 
   void stopRecording() {
+    if (!isRecording) return;
+
     setState(() => isRecording = false);
     timer?.cancel();
-    saveToCsv(); // เมื่อหยุดการบันทึก จะบันทึกเป็นไฟล์ .csv
+    accelerometerSubscription?.cancel();
+    accelerometerSubscription = null;
   }
 
   void resetRecording() {
@@ -82,6 +91,8 @@ class _AccelerometerGraphState extends State<AccelerometerGraph> {
       sensorData = [];
     });
     timer?.cancel();
+    accelerometerSubscription?.cancel();
+    accelerometerSubscription = null;
   }
 
   // บันทึกข้อมูลเป็น .csv
